@@ -1,0 +1,10 @@
+First push
+    Need all teams to get ids
+    Call all teams method $
+    Filter out nba_franchise true
+    Filter out allStar false
+    Check data make sure all 30 teams present and correct
+    Save this data to csv
+
+
+
