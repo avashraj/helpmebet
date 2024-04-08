@@ -10,6 +10,52 @@ second push
     need to get all players from every team
     call api 30 times for all players
     need to sort players that i want
+
+third push:
+    need to get necessary data for algorithm
+    historic data for 2 seasons
+        for every player
+            their points rebounds and assists per game
     
+4th push
+    putting data into sqlite
+
+5th push ( new branch )
+    make abstract picking guide thing for multiple algorithms
+    algorithm number 1
+        taking in specifc queries to database and using those stats to tell if the bet is good or not
+            average stats from historic seasons
+            if prop is near .5 average says good
+
+6th push
+    streamlit front end connection
+    put in pick
+    good pick
+    bad pick
+    
+
+
+MVP DONE!!!!!!!!
+
+
+ask how to make it scaleable to add more algortithms, data more front end development
+also how to continuosly add data to database and have it scaleable so when every year 
+system resets to make easier collecting data for current season
+
+more data to use:
+this seasons
+players against specific teams data
+
+upgrades:
+
+better algorithm using current season data
+
+app suggests picks
+
+
+
+
+
+
 
 
