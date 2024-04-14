@@ -1,28 +1,77 @@
-'''
-mvp algorithm
+import sqlite3
 
-cli application first
 
-take in player prop
-check if player data exists in particular team folder
-compare player prop to stats
-if within .5 greater than or less than average, give a good prop
-if not bad prop
+class NBAPropBets:
+    
+    def __init__(self, db_path):
+        self.db_path = db_path
 
-need to concatinate player name
-'''
+    def get_player_avg(self, name, prop):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT {prop} FROM playeravgs WHERE name=?", (name,))
+            result = cursor.fetchone()
+            return result[0] if result else None
 
-from abc import ABC, abstractmethod
+    def player_exists(self, name):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT EXISTS(SELECT 1 FROM playeravgs WHERE name=?)", (name,))
+            return cursor.fetchone()[0] == 1
 
-'''
-abstract class that has ratepick method
+    def check_prop_bet(self, name, prop, prop_bet):
+        avg = self.get_player_avg(name, prop)
+        if avg is None:
+            suggestions = self.suggest_player_names()
+            return f"Player not found. Did you mean: {suggestions[0]} or {suggestions[1]}?", False
+        if abs(avg - prop_bet) > 0.5:
+            return "Bad prop.", True
+        else:
+            return "Good prop.", True
 
-this method is scaleable
+    def suggest_player_names(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM playeravgs ORDER BY RANDOM() LIMIT 2")
+            results = cursor.fetchall()
+            return [result[0] for result in results]
 
-mocked ratepick method to make cli/ future frontend development easier
+    def get_player_count(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM playeravgs")
+            count = cursor.fetchone()[0]
+            return count
 
-data handler ?? idk how to organize this becuase all of my data is in csv files
+    def run_cli(self):
+        while True:
+            player_name = input("Enter player's name (or type 'exit' to quit): ").strip()
+            if player_name.lower() == 'exit':
+                break
 
-factory class to give out picks to cli??
-'''
+            if not self.player_exists(player_name):
+                suggestions = self.suggest_player_names()
+                print(f"Player not found. Did you mean: {suggestions[0]} or {suggestions[1]}?")
+                continue
 
+            prop = input("Enter the prop to check (points, rebounds, assists): ").lower().strip()
+            if prop not in ["points", "rebounds", "assists"]:
+                print("Invalid prop. Please enter 'points', 'rebounds', or 'assists'.")
+                continue
+
+            try:
+                prop_bet = float(input(f"Enter the prop bet for {player_name}'s {prop}: ").strip())
+            except ValueError:
+                print("Please enter a valid number for the prop bet.")
+                continue
+
+            result, found = self.check_prop_bet(player_name, f"avg_{prop}", prop_bet)
+            if not found:
+                print(result)
+            else:
+                print(result)
+
+
+db_path = '2022szn.db'
+prop_bets = NBAPropBets(db_path)
+prop_bets.run_cli()
