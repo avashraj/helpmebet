@@ -19,15 +19,17 @@ class NBAPropBets:
             cursor.execute("SELECT EXISTS(SELECT 1 FROM playeravgs WHERE name=?)", (name,))
             return cursor.fetchone()[0] == 1
 
-    def check_prop_bet(self, name, prop, prop_bet):
+    def check_prop_bet(self, name, prop, prop_bet, under_over):
         avg = self.get_player_avg(name, prop)
         if avg is None:
             suggestions = self.suggest_player_names()
             return f"Player not found. Did you mean: {suggestions[0]} or {suggestions[1]}?", False
-        if abs(avg - prop_bet) > 0.5:
-            return "Bad prop.", True
+        if under_over == "under" and avg < prop_bet:
+            return "Good bet.", True
+        elif under_over == "over" and avg > prop_bet:
+            return "Good bet.", True
         else:
-            return "Good prop.", True
+            return "Bad bet.", True
 
     def suggest_player_names(self):
         with sqlite3.connect(self.db_path) as conn:
@@ -59,13 +61,18 @@ class NBAPropBets:
                 print("Invalid prop. Please enter 'points', 'rebounds', or 'assists'.")
                 continue
 
+            under_over = input("Is the bet for under or over the average? ").lower().strip()
+            if under_over not in ["under", "over"]:
+                print("Invalid input. Please enter 'under' or 'over'.")
+                continue
+
             try:
                 prop_bet = float(input(f"Enter the prop bet for {player_name}'s {prop}: ").strip())
             except ValueError:
                 print("Please enter a valid number for the prop bet.")
                 continue
 
-            result, found = self.check_prop_bet(player_name, f"avg_{prop}", prop_bet)
+            result, found = self.check_prop_bet(player_name, f"avg_{prop}", prop_bet, under_over)
             if not found:
                 print(result)
             else:
